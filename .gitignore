@@ -1,10 +1,20 @@
+# -----------------
+# 文档和目标目录
+# -----------------
 HELP.md
 target/
-!.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+# -----------------
+# Maven Wrapper
+# -----------------
+!.mvn/wrapper/maven-wrapper.jar
+
+# -----------------
+# IDE 配置
+# -----------------
+# STS
 .apt_generated
 .classpath
 .factorypath
@@ -13,13 +23,13 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
+# IntelliJ IDEA
 .idea
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
@@ -29,5 +39,13 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
+# VS Code
 .vscode/
+
+# -----------------
+# 配置文件和敏感信息
+# -----------------
+*.yml
+*.yaml
+*.env
+static/application.yaml
