@@ -1,11 +1,9 @@
 package com.example.springboot_01.config;
-
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
@@ -14,7 +12,6 @@ public class WebConfig implements WebMvcConfigurer {
     public WebConfig(TokenInterceptor tokenInterceptor) {
         this.tokenInterceptor = tokenInterceptor;
     }
-
     /**
      * 全局放开跨域（解决 Flutter Web 图片无法访问问题）
      */
@@ -27,7 +24,6 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowCredentials(false)
                 .maxAge(3600);
     }
-
     /**
      * 静态资源映射
      * 如果你用的是 static/productImages 或 uploads
@@ -40,7 +36,6 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("classpath:/static/uploads/");
     }
-
     /**
      * 如果将来你要加 TokenInterceptor，这里也能用
      */

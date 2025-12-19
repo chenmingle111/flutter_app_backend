@@ -1,5 +1,4 @@
 package com.example.springboot_01.service.impl;
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.springboot_01.dto.CartItemDTO;
@@ -11,9 +10,9 @@ import com.example.springboot_01.service.IShoppingCartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-
 @Service
 public class ShoppingCartServiceImpl extends ServiceImpl<ShoppingCartMapper, ShoppingCart>
         implements IShoppingCartService {
@@ -33,18 +32,26 @@ public class ShoppingCartServiceImpl extends ServiceImpl<ShoppingCartMapper, Sho
         String productId = String.valueOf(cartItemDTO.getId());
         Integer quantity = cartItemDTO.getItem();
 
-        // Update Redis Hash
-        redisTemplate.opsForHash().put(key, productId, quantity);
+        if (quantity == null || quantity <= 0) {
+            // 0 或负数：视为删除该商品
+            redisTemplate.opsForHash().delete(key, productId);
+        } else {
+            // 累加数量（原逻辑为覆盖，这里改为累加）
+            Integer existingQty = (Integer) redisTemplate.opsForHash().get(key, productId);
+            int newQty = (existingQty == null ? 0 : existingQty) + quantity;
+            redisTemplate.opsForHash().put(key, productId, newQty);
+        }
 
-        // Update Active User ZSet (score = current timestamp)
+        // 更新用户活跃度（时间戳越大越靠后）
         redisTemplate.opsForZSet().add(ACTIVE_USERS_KEY, String.valueOf(userId), System.currentTimeMillis());
-    }
 
+        // 设置购物车过期时间（7天，可选）
+        redisTemplate.expire(key, Duration.ofDays(7));
+    }
     @Override
     public void updateCartItem(Long userId, CartItemDTO cartItemDTO) {
         addToCart(userId, cartItemDTO); // Same logic for update
     }
-
     @Override
     public void removeCartItem(Long userId, Long productId) {
         String key = CART_KEY_PREFIX + userId;
@@ -62,15 +69,6 @@ public class ShoppingCartServiceImpl extends ServiceImpl<ShoppingCartMapper, Sho
         java.util.Map<Object, Object> entries = redisTemplate.opsForHash().entries(key);
 
         if (entries.isEmpty()) {
-            // 2. If empty in Redis, load from MySQL (optional, but good for consistency)
-            // For this requirement, we assume if Redis is empty, we might need to load from
-            // DB or return empty.
-            // Let's load from DB to be safe and populate Redis?
-            // Or just return DB results directly without populating Redis (lazy load)?
-            // Requirement says "not directly update mysql", implying Redis is the write
-            // buffer.
-            // But if user comes back after 30 mins, data is in MySQL.
-            // So we should load from MySQL if Redis is empty.
             return loadFromMysql(userId);
         }
 
